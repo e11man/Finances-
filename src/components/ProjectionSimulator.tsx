@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppState, ProjectionSettings } from '@/types';
 import { calculateProjection, formatCurrency, getTotalSavingsAndInvestments } from '@/utils/calculations';
-import { loadFromLocalStorage, saveToLocalStorage } from '@/utils/storage';
+import { loadFromLocalStorage, saveToLocalStorage, exportToJSON, importFromJSON } from '@/utils/storage';
 
 export default function ProjectionSimulator() {
   const [appState, setAppState] = useState<AppState | null>(null);
@@ -14,6 +14,10 @@ export default function ProjectionSimulator() {
     targetAge: 65
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loaded = loadFromLocalStorage();
@@ -38,6 +42,46 @@ export default function ProjectionSimulator() {
     }
   };
 
+  const handleExport = () => {
+    if (appState) {
+      exportToJSON(appState);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportError(null);
+    setImportSuccess(false);
+
+    try {
+      const importedData = await importFromJSON(file);
+      setAppState(importedData);
+      setSettings(importedData.projectionSettings);
+      saveToLocalStorage(importedData);
+      setImportSuccess(true);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setImportSuccess(false), 3000);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Unknown error occurred');
+      // Clear error message after 5 seconds
+      setTimeout(() => setImportError(null), 5000);
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -56,8 +100,52 @@ export default function ProjectionSimulator() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Projection Simulator</h1>
-          <p className="text-gray-600 mt-1">Discover what you'll have at any age</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Projection Simulator</h1>
+              <p className="text-gray-600 mt-1">Discover what you'll have at any age</p>
+            </div>
+            
+            {/* Export/Import Buttons */}
+            <div className="flex space-x-2">
+              <button
+                onClick={handleExport}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+                disabled={!appState}
+              >
+                Export Data
+              </button>
+              <button
+                onClick={handleImportClick}
+                disabled={isImporting}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isImporting ? 'Importing...' : 'Import Data'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+          </div>
+          
+          {/* Status Messages */}
+          {importError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="text-red-800 text-sm font-medium">Import Error:</div>
+              <div className="text-red-700 text-sm">{importError}</div>
+            </div>
+          )}
+          
+          {importSuccess && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <div className="text-green-800 text-sm font-medium">Success!</div>
+              <div className="text-green-700 text-sm">Data imported successfully</div>
+            </div>
+          )}
         </div>
       </div>
 
