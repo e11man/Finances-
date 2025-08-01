@@ -1,0 +1,152 @@
+.month-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.month-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.month-header {
+  margin-bottom: 20px;
+}
+
+.month-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.rollover-indicator {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #10b981;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.month-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.input-group input {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  background: #f9fafb;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-group input::placeholder {
+  color: #9ca3af;
+}
+
+.month-summary {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.summary-row span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.summary-row .amount {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.summary-row.remaining {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.amount.positive {
+  color: #10b981;
+}
+
+.amount.negative {
+  color: #ef4444;
+}
+
+.notes-section textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: #f9fafb;
+}
+
+.notes-section textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.notes-section textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .month-card {
+    padding: 16px;
+  }
+
+  .month-header h3 {
+    font-size: 16px;
+  }
+
+  .input-group input {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}

@@ -1,0 +1,146 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 32px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header .header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.tagline {
+  margin: 4px 0 0 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.reset-button {
+  position: absolute;
+  top: 32px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.reset-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  width: 100%;
+}
+
+.months-section {
+  margin: 48px 0;
+}
+
+.months-section h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 24px 0;
+}
+
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.app-footer {
+  background: #f9fafb;
+  padding: 24px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 48px;
+}
+
+.app-footer p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 24px 0;
+  }
+
+  .app-header h1 {
+    font-size: 24px;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .reset-button {
+    position: static;
+    margin-top: 16px;
+  }
+
+  .app-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-main {
+    padding: 24px 16px;
+  }
+
+  .months-grid {
+    grid-template-columns: 1fr;
+  }
+}
