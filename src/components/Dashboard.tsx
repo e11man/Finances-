@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AppState, MonthData } from '@/types';
 import { updateMonthWithRollover, formatCurrency, getTotalSavingsAndInvestments } from '@/utils/calculations';
-import { loadFromLocalStorage, saveToLocalStorage, createInitialAppState } from '@/utils/storage';
+import { loadFromLocalStorage, saveToLocalStorage, createInitialAppState, exportToJSON, importFromJSON } from '@/utils/storage';
 import MonthCard from './MonthCard';
 
 export default function Dashboard() {
   const [appState, setAppState] = useState<AppState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loaded = loadFromLocalStorage();
@@ -44,6 +48,50 @@ export default function Dashboard() {
     });
   };
 
+  const handleExport = () => {
+    if (appState) {
+      exportToJSON(appState);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportError(null);
+    setImportSuccess(false);
+
+    try {
+      const importedData = await importFromJSON(file);
+      
+      // Recalculate rollovers for imported data
+      const updatedMonths = updateMonthWithRollover(importedData.months);
+      const finalAppState = { ...importedData, months: updatedMonths };
+      
+      setAppState(finalAppState);
+      saveToLocalStorage(finalAppState);
+      setImportSuccess(true);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setImportSuccess(false), 3000);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Unknown error occurred');
+      // Clear error message after 5 seconds
+      setTimeout(() => setImportError(null), 5000);
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -74,13 +122,55 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Financial Planner</h1>
               <p className="text-gray-600 mt-1">Your 12-month financial roadmap</p>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600">Total Savings & Investments</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(totalSavings)}
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Total Savings & Investments</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(totalSavings)}
+                </div>
+              </div>
+              
+              {/* Export/Import Buttons */}
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={handleExport}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+                  disabled={!appState}
+                >
+                  Export Data
+                </button>
+                <button
+                  onClick={handleImportClick}
+                  disabled={isImporting}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isImporting ? 'Importing...' : 'Import Data'}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
             </div>
           </div>
+          
+          {/* Status Messages */}
+          {importError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <div className="text-red-800 text-sm font-medium">Import Error:</div>
+              <div className="text-red-700 text-sm">{importError}</div>
+            </div>
+          )}
+          
+          {importSuccess && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <div className="text-green-800 text-sm font-medium">Success!</div>
+              <div className="text-green-700 text-sm">Data imported successfully</div>
+            </div>
+          )}
           
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
