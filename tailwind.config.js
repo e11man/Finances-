@@ -11,6 +11,9 @@ module.exports = {
         primary: {
           50: '#f0f4f8',
           100: '#d9e6f2',
+          200: '#b3c5d9',
+          300: '#8da4c0',
+          400: '#6783a7',
           500: '#2E4057', // Deep navy blue for headers and primary buttons
           600: '#253649',
           700: '#1c2a3a',
@@ -26,6 +29,9 @@ module.exports = {
         accent: {
           50: '#fff5f5',
           100: '#ffebeb',
+          200: '#fdd8d8',
+          300: '#fbc5c5',
+          400: '#f99999',
           500: '#FF6B6B', // Vibrant coral accent for CTAs or interactive states
           600: '#ff5252',
           700: '#f44336',

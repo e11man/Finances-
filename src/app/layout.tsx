@@ -1,19 +1,20 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
   title: 'Financial Planner',
   description: 'A comprehensive financial planning application',
   keywords: 'financial planning, budget, savings, investment, money management',
   authors: [{ name: 'Financial Planner Team' }],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
-  themeColor: '#2E4057',
   robots: 'index, follow',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#2E4057',
 }
 
 export default function RootLayout({
