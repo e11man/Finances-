@@ -1,14 +1,33 @@
+export interface Transaction {
+  id: string;
+  type: 'income' | 'expense';
+  amount: number;
+  tag: string;
+  description?: string;
+}
+
 export interface MonthData {
   id: string;
   month: number; // 1-12
   year: number;
-  income: number;
-  expenses: number;
-  savings: number;
-  investments: number;
+  transactions: Transaction[];
   notes: string;
   rolloverFromPrevious: number;
   remainingFunds: number;
+}
+
+export interface DebtItem {
+  id: string;
+  name: string;
+  balance: number;
+  interestRate: number; // percentage
+  minimumPayment: number;
+}
+
+export interface InitialFinances {
+  currentMoney: number;
+  debts: DebtItem[];
+  setupComplete: boolean;
 }
 
 export interface ProjectionSettings {
@@ -26,6 +45,7 @@ export interface User {
 
 export interface AppState {
   user: User;
+  initialFinances: InitialFinances;
   months: MonthData[];
   projectionSettings: ProjectionSettings;
 }

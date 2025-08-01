@@ -1,4 +1,4 @@
-import { AppState, MonthData, ProjectionSettings, User } from '@/types';
+import { AppState, MonthData, ProjectionSettings, User, InitialFinances, Transaction, DebtItem } from '@/types';
 
 const STORAGE_KEY = 'financial_planner_data';
 
@@ -13,7 +13,9 @@ export function loadFromLocalStorage(): AppState | null {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const data = JSON.parse(stored);
+        // Migrate old data structure if needed
+        return migrateDataIfNeeded(data);
       } catch (error) {
         console.error('Error parsing stored data:', error);
         return null;
@@ -21,6 +23,74 @@ export function loadFromLocalStorage(): AppState | null {
     }
   }
   return null;
+}
+
+// Migration function for backward compatibility
+function migrateDataIfNeeded(data: any): AppState {
+  // If data already has the new structure, return as is
+  if (data.initialFinances && data.months[0]?.transactions) {
+    return data;
+  }
+
+  // Migrate old structure to new structure
+  const migratedMonths: MonthData[] = data.months.map((month: any) => ({
+    id: month.id,
+    month: month.month,
+    year: month.year,
+    transactions: [
+      ...(month.income > 0 ? [{
+        id: `${month.id}-income-1`,
+        type: 'income' as const,
+        amount: month.income,
+        tag: 'Salary',
+        description: 'Monthly income'
+      }] : []),
+      ...(month.expenses > 0 ? [{
+        id: `${month.id}-expense-1`,
+        type: 'expense' as const,
+        amount: month.expenses,
+        tag: 'General Expenses',
+        description: 'Monthly expenses'
+      }] : []),
+      ...(month.savings > 0 ? [{
+        id: `${month.id}-saving-1`,
+        type: 'expense' as const,
+        amount: month.savings,
+        tag: 'Savings',
+        description: 'Monthly savings'
+      }] : []),
+      ...(month.investments > 0 ? [{
+        id: `${month.id}-investment-1`,
+        type: 'expense' as const,
+        amount: month.investments,
+        tag: 'Investment',
+        description: 'Monthly investment'
+      }] : [])
+    ],
+    notes: month.notes || '',
+    rolloverFromPrevious: month.rolloverFromPrevious || 0,
+    remainingFunds: month.remainingFunds || 0,
+  }));
+
+  return {
+    user: data.user || {
+      email: '',
+      age: 25,
+      currentNetWorth: 0,
+    },
+    initialFinances: {
+      currentMoney: data.user?.currentNetWorth || 0,
+      debts: [],
+      setupComplete: true, // Mark as complete for migrated data
+    },
+    months: migratedMonths,
+    projectionSettings: data.projectionSettings || {
+      monthlyContribution: 500,
+      annualROI: 7,
+      currentAge: 25,
+      targetAge: 65,
+    },
+  };
 }
 
 // JSON Export/Import Functions
@@ -51,12 +121,13 @@ export function importFromJSON(file: File): Promise<AppState> {
         
         const data = JSON.parse(result);
         
-        // Validate the imported data structure
+        // Validate and migrate the imported data structure
         if (!isValidAppState(data)) {
           throw new Error('Invalid file format. The file does not contain valid financial planner data.');
         }
         
-        resolve(data);
+        const migratedData = migrateDataIfNeeded(data);
+        resolve(migratedData);
       } catch (error) {
         reject(error);
       }
@@ -83,21 +154,6 @@ function isValidAppState(data: any): data is AppState {
   // Check months array
   if (!Array.isArray(data.months)) return false;
   if (data.months.length === 0) return false;
-  
-  // Check each month object
-  for (const month of data.months) {
-    if (!month || typeof month !== 'object') return false;
-    if (typeof month.id !== 'string') return false;
-    if (typeof month.month !== 'number') return false;
-    if (typeof month.year !== 'number') return false;
-    if (typeof month.income !== 'number') return false;
-    if (typeof month.expenses !== 'number') return false;
-    if (typeof month.savings !== 'number') return false;
-    if (typeof month.investments !== 'number') return false;
-    if (typeof month.notes !== 'string') return false;
-    if (typeof month.rolloverFromPrevious !== 'number') return false;
-    if (typeof month.remainingFunds !== 'number') return false;
-  }
   
   // Check projection settings
   if (!data.projectionSettings || typeof data.projectionSettings !== 'object') return false;
@@ -127,10 +183,7 @@ export function createInitialMonths(): MonthData[] {
       id: `${year}-${month.toString().padStart(2, '0')}`,
       month,
       year,
-      income: 0,
-      expenses: 0,
-      savings: 0,
-      investments: 0,
+      transactions: [],
       notes: '',
       rolloverFromPrevious: 0,
       remainingFunds: 0,
@@ -145,6 +198,11 @@ export function createInitialAppState(): AppState {
       age: 25,
       currentNetWorth: 0,
     },
+    initialFinances: {
+      currentMoney: 0,
+      debts: [],
+      setupComplete: false,
+    },
     months: createInitialMonths(),
     projectionSettings: {
       monthlyContribution: 500,
@@ -153,4 +211,16 @@ export function createInitialAppState(): AppState {
       targetAge: 65,
     },
   };
+}
+
+export function generateTransactionId(monthId: string, type: string): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  return `${monthId}-${type}-${timestamp}-${random}`;
+}
+
+export function generateDebtId(): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  return `debt-${timestamp}-${random}`;
 }

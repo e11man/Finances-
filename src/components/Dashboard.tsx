@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { AppState, MonthData } from '@/types';
-import { updateMonthWithRollover, formatCurrency, getTotalSavingsAndInvestments } from '@/utils/calculations';
+import { updateMonthWithRollover, formatCurrency, getTotalSavings, calculateMonthlyIncome, calculateMonthlyExpenses, calculateTotalDebt, calculateNetWorth, getAllTags, getTotalByTag } from '@/utils/calculations';
 import { loadFromLocalStorage, saveToLocalStorage, createInitialAppState, exportToJSON, importFromJSON } from '@/utils/storage';
 import MonthCard from './MonthCard';
+import InitialSetup from './InitialSetup';
 
 export default function Dashboard() {
   const [appState, setAppState] = useState<AppState | null>(null);
@@ -31,6 +32,17 @@ export default function Dashboard() {
       saveToLocalStorage(appState);
     }
   }, [appState]);
+
+  const handleInitialSetupComplete = (initialFinances: any) => {
+    if (!appState) return;
+    
+    const updatedAppState = {
+      ...appState,
+      initialFinances
+    };
+    setAppState(updatedAppState);
+    saveToLocalStorage(updatedAppState);
+  };
 
   const handleMonthUpdate = (updatedMonth: MonthData) => {
     if (!appState) return;
@@ -114,9 +126,22 @@ export default function Dashboard() {
     );
   }
 
-  const totalSavings = getTotalSavingsAndInvestments(appState.months);
-  const totalIncome = appState.months.reduce((sum, month) => sum + month.income, 0);
-  const totalExpenses = appState.months.reduce((sum, month) => sum + month.expenses, 0);
+  // Show initial setup if not completed
+  if (!appState.initialFinances.setupComplete) {
+    return (
+      <InitialSetup
+        initialFinances={appState.initialFinances}
+        onComplete={handleInitialSetupComplete}
+      />
+    );
+  }
+
+  const totalSavings = getTotalSavings(appState.months);
+  const totalIncome = appState.months.reduce((sum, month) => sum + calculateMonthlyIncome(month.transactions), 0);
+  const totalExpenses = appState.months.reduce((sum, month) => sum + calculateMonthlyExpenses(month.transactions), 0);
+  const totalDebt = calculateTotalDebt(appState.initialFinances.debts);
+  const netWorth = calculateNetWorth(appState.initialFinances.currentMoney, totalSavings, totalDebt);
+  const allTags = getAllTags(appState.months);
 
   return (
     <div className="min-h-screen bg-background-100">
@@ -125,15 +150,17 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold text-primary-500">Financial Planner</h1>
-              <p className="text-primary-600 mt-1 text-sm sm:text-base">Your 12-month financial roadmap</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-primary-500">Financial Dashboard</h1>
+              <p className="text-primary-600 mt-1 text-sm sm:text-base">Your 12-month financial journey</p>
             </div>
             
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
               <div className="text-center sm:text-right">
-                <div className="text-sm text-primary-600 font-medium">Total Savings & Investments</div>
-                <div className="text-xl sm:text-2xl font-bold text-accent-600">
-                  {formatCurrency(totalSavings)}
+                <div className="text-sm text-primary-600 font-medium">Net Worth</div>
+                <div className={`text-xl sm:text-2xl font-bold ${
+                  netWorth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {formatCurrency(netWorth)}
                 </div>
               </div>
               
@@ -179,8 +206,14 @@ export default function Dashboard() {
             </div>
           )}
           
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+          {/* Financial Overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center sm:text-left">
+              <div className="text-blue-800 font-medium text-sm">Current Money</div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                {formatCurrency(appState.initialFinances.currentMoney)}
+              </div>
+            </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center sm:text-left">
               <div className="text-green-800 font-medium text-sm">Total Income</div>
               <div className="text-xl sm:text-2xl font-bold text-green-600">
@@ -193,22 +226,70 @@ export default function Dashboard() {
                 {formatCurrency(totalExpenses)}
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center sm:text-left sm:col-span-2 lg:col-span-1">
-              <div className="text-blue-800 font-medium text-sm">Net Savings</div>
-              <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                {formatCurrency(totalIncome - totalExpenses)}
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center sm:text-left">
+              <div className="text-purple-800 font-medium text-sm">Total Savings</div>
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                {formatCurrency(totalSavings)}
               </div>
             </div>
           </div>
+
+          {/* Debt Overview */}
+          {appState.initialFinances.debts.length > 0 && (
+            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="font-medium text-red-800 mb-3">Debt Overview</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
+                <div className="text-center">
+                  <div className="text-sm text-red-700">Total Debt</div>
+                  <div className="text-lg font-bold text-red-600">{formatCurrency(totalDebt)}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-red-700">Number of Debts</div>
+                  <div className="text-lg font-bold text-red-600">{appState.initialFinances.debts.length}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-sm text-red-700">Avg Interest Rate</div>
+                  <div className="text-lg font-bold text-red-600">
+                    {(appState.initialFinances.debts.reduce((sum, debt) => sum + debt.interestRate, 0) / appState.initialFinances.debts.length).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-red-700">
+                💡 Consider including debt payments in your monthly expense planning to track progress
+              </div>
+            </div>
+          )}
+
+          {/* Category Insights */}
+          {allTags.length > 0 && (
+            <div className="mt-6 bg-background-50 rounded-lg p-4">
+              <h3 className="font-medium text-primary-800 mb-3">Spending by Category</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {allTags.slice(0, 12).map((tag) => {
+                  const total = getTotalByTag(appState.months, tag);
+                  return (
+                    <div key={tag} className="text-center">
+                      <div className="text-xs text-primary-600 truncate" title={tag}>{tag}</div>
+                      <div className={`text-sm font-bold ${
+                        total >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatCurrency(Math.abs(total))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Monthly Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-6 text-center sm:text-left">
-          <h2 className="text-xl font-semibold text-primary-600 mb-2">Monthly Breakdown</h2>
+          <h2 className="text-xl font-semibold text-primary-600 mb-2">Monthly Planning</h2>
           <div className="text-sm text-primary-600">
-            Tap "Edit" on any month to update your financial data
+            Tap "Edit" on any month to add income and expenses with custom tags
           </div>
         </div>
         
@@ -222,14 +303,27 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Rollover Explanation */}
-        <div className="mt-8 bg-primary-50 border border-primary-200 rounded-lg p-4 sm:p-6">
-          <h3 className="font-medium text-primary-800 mb-2 text-center sm:text-left">How Rollover Works</h3>
-          <p className="text-primary-700 text-sm leading-relaxed text-center sm:text-left">
-            Any remaining funds from each month (Income - Expenses - Savings - Investments) 
-            automatically roll over to the next month. Green rollover indicators show 
-            when funds carry forward to help with your planning.
-          </p>
+        {/* Help Section */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-6">
+            <h3 className="font-medium text-primary-800 mb-3 text-center sm:text-left">💡 How Tagging Works</h3>
+            <div className="text-primary-700 text-sm leading-relaxed space-y-2">
+              <p>• <strong>Income tags:</strong> Salary, Freelance, Side Hustle, etc.</p>
+              <p>• <strong>Expense tags:</strong> Rent, Groceries, Transportation, etc.</p>
+              <p>• <strong>Savings/Investment tags:</strong> Use tags like "Savings", "Investment", "Emergency Fund"</p>
+              <p>• <strong>Custom tags:</strong> Create any tag that helps you organize your finances</p>
+            </div>
+          </div>
+          
+          <div className="bg-accent-50 border border-accent-200 rounded-lg p-6">
+            <h3 className="font-medium text-accent-800 mb-3 text-center sm:text-left">🎯 Smart Planning Tips</h3>
+            <div className="text-accent-700 text-sm leading-relaxed space-y-2">
+              <p>• Funds automatically roll over between months</p>
+              <p>• Track debt payments as expenses to monitor progress</p>
+              <p>• Use consistent tags to analyze spending patterns</p>
+              <p>• Set savings and investment goals with dedicated tags</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

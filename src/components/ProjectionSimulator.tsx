@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { AppState, ProjectionSettings } from '@/types';
-import { calculateProjection, formatCurrency, getTotalSavingsAndInvestments } from '@/utils/calculations';
+import { calculateProjection, formatCurrency, getTotalSavings } from '@/utils/calculations';
 import { loadFromLocalStorage, saveToLocalStorage, exportToJSON, importFromJSON } from '@/utils/storage';
 
 export default function ProjectionSimulator() {
@@ -93,7 +93,7 @@ export default function ProjectionSimulator() {
     );
   }
 
-  const currentSavings = appState ? getTotalSavingsAndInvestments(appState.months) : 0;
+  const currentSavings = appState ? getTotalSavings(appState.months) : 0;
   const projectedValue = calculateProjection(currentSavings, settings);
   const yearsToTarget = settings.targetAge - settings.currentAge;
   const totalContributions = settings.monthlyContribution * 12 * yearsToTarget;
