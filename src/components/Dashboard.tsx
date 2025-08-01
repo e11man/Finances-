@@ -94,16 +94,22 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-background-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <div className="text-primary-600 font-medium">Loading your financial data...</div>
+        </div>
       </div>
     );
   }
 
   if (!appState) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-red-600">Error loading application data</div>
+      <div className="min-h-screen bg-background-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-red-600 font-medium text-lg mb-2">Error loading application data</div>
+          <div className="text-primary-600 text-sm">Please refresh the page to try again</div>
+        </div>
       </div>
     );
   }
@@ -113,28 +119,29 @@ export default function Dashboard() {
   const totalExpenses = appState.months.reduce((sum, month) => sum + month.expenses, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Financial Planner</h1>
-              <p className="text-gray-600 mt-1">Your 12-month financial roadmap</p>
+      <div className="bg-white shadow-sm border-b border-background-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-primary-500">Financial Planner</h1>
+              <p className="text-primary-600 mt-1 text-sm sm:text-base">Your 12-month financial roadmap</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-600">Total Savings & Investments</div>
-                <div className="text-2xl font-bold text-blue-600">
+            
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+              <div className="text-center sm:text-right">
+                <div className="text-sm text-primary-600 font-medium">Total Savings & Investments</div>
+                <div className="text-xl sm:text-2xl font-bold text-accent-600">
                   {formatCurrency(totalSavings)}
                 </div>
               </div>
               
               {/* Export/Import Buttons */}
-              <div className="flex flex-col space-y-2">
+              <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 w-full sm:w-auto">
                 <button
                   onClick={handleExport}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm"
+                  className="btn-primary flex-1 sm:flex-none text-sm"
                   disabled={!appState}
                 >
                   Export Data
@@ -142,7 +149,7 @@ export default function Dashboard() {
                 <button
                   onClick={handleImportClick}
                   disabled={isImporting}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="btn-secondary flex-1 sm:flex-none text-sm"
                 >
                   {isImporting ? 'Importing...' : 'Import Data'}
                 </button>
@@ -159,36 +166,36 @@ export default function Dashboard() {
           
           {/* Status Messages */}
           {importError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <div className="text-red-800 text-sm font-medium">Import Error:</div>
-              <div className="text-red-700 text-sm">{importError}</div>
+            <div className="mt-4 p-3 status-error rounded-lg">
+              <div className="font-medium text-sm">Import Error:</div>
+              <div className="text-sm">{importError}</div>
             </div>
           )}
           
           {importSuccess && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-              <div className="text-green-800 text-sm font-medium">Success!</div>
-              <div className="text-green-700 text-sm">Data imported successfully</div>
+            <div className="mt-4 p-3 status-success rounded-lg">
+              <div className="font-medium text-sm">Success!</div>
+              <div className="text-sm">Data imported successfully</div>
             </div>
           )}
           
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="text-green-800 font-medium">Total Income</div>
-              <div className="text-2xl font-bold text-green-600">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center sm:text-left">
+              <div className="text-green-800 font-medium text-sm">Total Income</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {formatCurrency(totalIncome)}
               </div>
             </div>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="text-red-800 font-medium">Total Expenses</div>
-              <div className="text-2xl font-bold text-red-600">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center sm:text-left">
+              <div className="text-red-800 font-medium text-sm">Total Expenses</div>
+              <div className="text-xl sm:text-2xl font-bold text-red-600">
                 {formatCurrency(totalExpenses)}
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="text-blue-800 font-medium">Net Savings</div>
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center sm:text-left sm:col-span-2 lg:col-span-1">
+              <div className="text-blue-800 font-medium text-sm">Net Savings</div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {formatCurrency(totalIncome - totalExpenses)}
               </div>
             </div>
@@ -197,15 +204,15 @@ export default function Dashboard() {
       </div>
 
       {/* Monthly Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Monthly Breakdown</h2>
-          <div className="text-sm text-gray-600">
-            Click "Edit" on any month to update your financial data
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mb-6 text-center sm:text-left">
+          <h2 className="text-xl font-semibold text-primary-600 mb-2">Monthly Breakdown</h2>
+          <div className="text-sm text-primary-600">
+            Tap "Edit" on any month to update your financial data
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {appState.months.map((month) => (
             <MonthCard
               key={month.id}
@@ -216,9 +223,9 @@ export default function Dashboard() {
         </div>
 
         {/* Rollover Explanation */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-900 mb-2">How Rollover Works</h3>
-          <p className="text-blue-800 text-sm">
+        <div className="mt-8 bg-primary-50 border border-primary-200 rounded-lg p-4 sm:p-6">
+          <h3 className="font-medium text-primary-800 mb-2 text-center sm:text-left">How Rollover Works</h3>
+          <p className="text-primary-700 text-sm leading-relaxed text-center sm:text-left">
             Any remaining funds from each month (Income - Expenses - Savings - Investments) 
             automatically roll over to the next month. Green rollover indicators show 
             when funds carry forward to help with your planning.

@@ -1,3 +1,132 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply text-base;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background-100 text-primary-800 font-sans;
+    @apply min-h-screen antialiased;
+  }
+
+  /* Mobile-first responsive typography */
+  h1 {
+    @apply text-2xl sm:text-3xl font-bold text-primary-500;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl font-semibold text-primary-600;
+  }
+
+  h3 {
+    @apply text-lg sm:text-xl font-medium text-primary-600;
+  }
+
+  /* Form elements with improved accessibility */
+  input, textarea, select {
+    @apply transition-colors duration-200;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-accent-500/50 border-accent-500;
+  }
+
+  /* Button base styles */
+  button {
+    @apply transition-all duration-200 ease-in-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  /* Scrollbar styling for better mobile experience */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background-200;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-400;
+  }
+}
+
+@layer components {
+  /* Primary button component */
+  .btn-primary {
+    @apply bg-primary-500 text-white px-4 py-2 rounded-lg font-medium;
+    @apply hover:bg-primary-600 active:bg-primary-700;
+    @apply focus:ring-primary-500/50;
+    @apply disabled:bg-gray-400 disabled:cursor-not-allowed;
+    @apply transition-all duration-200;
+  }
+
+  /* Secondary button component */
+  .btn-secondary {
+    @apply bg-background-50 text-primary-600 px-4 py-2 rounded-lg font-medium border border-primary-200;
+    @apply hover:bg-primary-50 active:bg-primary-100;
+    @apply focus:ring-primary-500/50;
+    @apply transition-all duration-200;
+  }
+
+  /* Accent button component */
+  .btn-accent {
+    @apply bg-accent-500 text-white px-4 py-2 rounded-lg font-medium;
+    @apply hover:bg-accent-600 active:bg-accent-700;
+    @apply focus:ring-accent-500/50;
+    @apply disabled:bg-gray-400 disabled:cursor-not-allowed;
+    @apply transition-all duration-200;
+  }
+
+  /* Card component */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-background-200;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Navigation link active state */
+  .nav-link-active {
+    @apply bg-accent-100 text-accent-700 border-accent-200;
+  }
+
+  /* Navigation link inactive state */
+  .nav-link-inactive {
+    @apply text-primary-600 hover:text-primary-800 hover:bg-background-200;
+  }
+
+  /* Form input styling */
+  .form-input {
+    @apply w-full px-3 py-2 border border-background-300 rounded-lg;
+    @apply bg-white text-primary-800 placeholder-gray-400;
+    @apply focus:ring-2 focus:ring-accent-500/50 focus:border-accent-500;
+    @apply transition-colors duration-200;
+  }
+
+  /* Status indicators */
+  .status-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  .status-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+  }
+
+  .status-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+
+  .status-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+  }
+}
